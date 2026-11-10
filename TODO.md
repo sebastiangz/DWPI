@@ -10,13 +10,14 @@ git, este archivo es el historial del proyecto.
 
 ## 🔴 Prioridad inmediata
 
-- [ ] **Verificar los 337 "no existe" del sondeo (60%).** Si el expediente es consecutivo,
-      casi todos los números entre 1 y 3.72 millones deberían existir; solo ~17 por encima
-      de 3.72 M son inexistentes legítimos. Puede que el extractor esté marcando como
-      inexistentes expedientes que sí existen (por ejemplo, si Marcanet tardó en responder).
-  - [ ] Buscar a mano en Marcanet 3 números de `no_existe.txt` del rango medio (p. ej. ~2,000,000)
-  - [ ] Si existen: corregir la detección en el extractor, vaciar `no_existe.txt` y repetir el sondeo
-  - [ ] Si no existen: documentar cómo se numeran los expedientes (huecos, rangos por tipo)
+- [x] **11-10** Verificar los 337 "no existe" del sondeo (60%) → **falso**: 3 números del
+      rango medio sí existen en Marcanet. Causa: la v3 revisaba una sola vez, al instante,
+      si había ficha; cuando Marcanet tardaba, concluía "no existe".
+- [x] **11-10** Extractor v4: "no existe" solo con mensaje explícito de Marcanet; si tarda, es error y se reintenta
+- [ ] Respaldar y vaciar `no_existe.txt`; repetir el sondeo (los 224 ya descargados se saltan)
+- [ ] Confirmar resultado: esperados ~17 inexistentes (los números > 3.72 M) y el resto encontrados
+- [ ] Si se detiene por "5 errores seguidos" en los números altos: el texto de "sin resultados"
+      de Marcanet es distinto al previsto → compartir captura `error_*.png` para ajustarlo
 
 ---
 
@@ -36,7 +37,7 @@ git, este archivo es el historial del proyecto.
 - [x] **11-09** `cargar_staging.py` + `pipeline.py` + vista `mart.v_expedientes` (sin datos de contacto, estatus estimado, días para vencer)
 - [x] **11-09** Extractor v3: los números inexistentes no cuentan como error ni se reintentan
 - [x] **11-09** `generar_lista.py` para rangos y sondeos
-- [x] **11-10** Sondeo 1 M – 3.8 M cada 5,000: 561 consultados, 224 encontrados, 337 inexistentes, 0 errores → **226 expedientes en base**
+- [x] **11-10** Sondeo 1 M – 3.8 M cada 5,000: 561 consultados, 224 encontrados, 337 marcados "no existe" (luego se comprobó que la mayoría es falso), 0 errores → **226 expedientes en base**
 
 ---
 
@@ -102,6 +103,8 @@ git, este archivo es el historial del proyecto.
 | 11-09 | ETL semanal, domingo 03:30; manual cuando se necesite | Balance entre frescura y carga al IMPI |
 | 11-09 | Sin datos de contacto en `mart` | Protección de datos personales |
 | 11-10 | Sprint 2 con Marcanet; SIGA pasa al Sprint 3 | Marcanet ya trae vigencia y titular; SIGA aporta actualización semanal |
+| 11-10 | "No existe" solo con confirmación explícita de la fuente | Que algo no aparezca no prueba que no exista; un falso "no existe" pierde datos sin avisar, un error se reintenta |
+| 11-10 | Toda métrica rara se verifica a mano contra la fuente | El 60% de "no existe" parecía un resultado, era una falla |
 
 ---
 
@@ -111,7 +114,7 @@ git, este archivo es el historial del proyecto.
 |---|---|---|
 | Ritmo de ~350 exp/hora | Rangos grandes tardan semanas | Sondeo para acotar; paralelismo moderado; SIGA para lo incremental |
 | Marcanet cambia su página | El parser deja de funcionar | Se guarda raw y se reprocesa; alertas por 5 errores seguidos |
-| Detección errónea de "no existe" | Expedientes perdidos sin aviso | Verificación en curso (prioridad inmediata) |
+| Detección errónea de "no existe" | Expedientes perdidos sin aviso | Ocurrió (v3). v4 exige mensaje explícito; revisar a mano una muestra en cada rango nuevo |
 | Uso comercial de datos personales | Riesgo legal | Política antes de la Fase 3; datos de contacto fuera de mart |
 | Términos de uso / carga al IMPI | Bloqueo de la IP | Pausas de 4–9 s; una sola sesión; horario nocturno |
 
@@ -122,4 +125,4 @@ git, este archivo es el historial del proyecto.
 | Semana | Expedientes en base | Consultados | No existen | Errores | Corridas | Nota |
 |---|---|---|---|---|---|---|
 | 2026-W45 | 2 | 2 | 0 | 0 | 1 | Prueba inicial en servidor |
-| 2026-W46 | 226 | 563 | 337 | 0 | 2 | Sondeo; "no existe" por verificar |
+| 2026-W46 | 226 | 563 | 337 | 0 | 2 | Sondeo; la mayoría de "no existe" resultó falso (bug v3) |
