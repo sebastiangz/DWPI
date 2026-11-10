@@ -109,7 +109,10 @@ Todos los comandos desde `/home2/DWPI` salvo que se indique otra carpeta.
 **Reglas que conviene recordar**
 - Una corrida se puede interrumpir y repetir: salta lo ya descargado y lo marcado en `no_existe.txt`.
 - Para volver a consultar un número marcado como inexistente, bórralo de `data/control/no_existe.txt`.
-- Ritmo: ~350 expedientes por hora, con pausas para no saturar al IMPI. **No reducir las pausas.**
+- **Cuota del IMPI:** tras ~75 consultas rápidas, Marcanet bloquea 10+ minutos
+  ("Has superado la cuota máxima de peticiones permitidas"). El extractor espera y reintenta solo.
+  Ritmo resultante: ~100 expedientes por hora (~2,500 por día). **No reducir las pausas ni
+  correr varios extractores a la vez.** Pausa ajustable: `DWPI_PAUSA="25,35"` en `secrets/dwpi.env`.
 - Después de copiar código nuevo por SCP no hace falta reconstruir la imagen; solo si cambia `docker/etl/Dockerfile` (`docker compose build etl`).
 - **Nunca** `docker compose down -v`: borraría datos.
 
@@ -123,6 +126,8 @@ Todos los comandos desde `/home2/DWPI` salvo que se indique otra carpeta.
 | Errores en la bitácora con texto en lugar de números | Se pasó un archivo que no es lista de expedientes | La lista debe tener un número por línea; el extractor v2+ lo valida |
 | `TargetClosedError` repetido | Se cerró el navegador durante la corrida | El extractor v2+ se detiene solo; volver a correr |
 | Se detiene con "5 errores seguidos" | Marcanet caído o cambió su página | Revisar capturas en `data/control/error_*.png` |
+| Bitácora con `CUOTA IMPI: espero N min` | Límite de consultas del IMPI | Normal desde v5: espera y continúa. Si es frecuente, subir `DWPI_PAUSA` |
+| Muchos "no existe" seguidos en bloque | (v3) La página de cuota se tomó como "no existe" | Corregido en v4/v5; vaciar `no_existe.txt` de esa corrida y repetir |
 | La tabla no aparece en Metabase | Metabase no ha sincronizado | Admin → Bases de datos → DWPI → *Sincronizar ahora* |
 | Archivo copiado por SCP no editable por `dwpi` | Faltan permisos de grupo | Verificar con `getfacl`; el grupo `dwpi` debe tener `rwX` |
 
@@ -144,3 +149,4 @@ wc -l data/control/no_existe.txt
 | Fecha | Expedientes en base | No existen | Errores | Última extracción |
 |---|---|---|---|---|
 | 2026-11-10 | 226 | 337 (por verificar) | 0 | 2026-11-10 |
+| 2026-11-10 | 365 | 2 | 5 (cuota IMPI) | 2026-11-10 |
